@@ -225,7 +225,20 @@ func (f *File) writeToZip(zw *zip.Writer) error {
 		if err != nil {
 			return false
 		}
-		_, err = fi.Write(f.readBytes(path.(string)))
+		var file *os.File
+		file, err = f.readTemp(path.(string))
+		if err != nil {
+			return false
+		}
+		_, err = io.Copy(fi, file)
+		closeErr := file.Close()
+		if err != nil {
+			return false
+		}
+		if closeErr != nil {
+			err = closeErr
+			return false
+		}
 		return true
 	})
 	return err
